@@ -1,0 +1,48 @@
+plugins {
+	// code formatting
+	id "com.diffplug.gradle.spotless" version "1.3.3"
+}
+
+repositories {
+	mavenCentral()
+	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+}
+
+//////////
+// JAVA //
+//////////
+apply plugin: 'java'
+sourceCompatibility = VER_JAVA
+targetCompatibility = VER_JAVA
+
+dependencies {
+	compile "com.diffplug.durian:durian:${VER_DURIAN}"
+	compile "com.pholser:junit-quickcheck-core:${VER_QUICKCHECK}"
+	compile "com.pholser:junit-quickcheck-generators:${VER_QUICKCHECK}"
+	compile "junit:junit:${VER_JUNIT}"
+}
+
+apply plugin: 'eclipse'
+
+////////////
+// FORMAT //
+////////////
+apply plugin: 'com.diffplug.gradle.spotless'
+spotless {
+	java {
+		licenseHeaderFile	'spotless.license.java'			// License header file
+		importOrderFile		'spotless.importorder'			// An import ordering file, exported from Eclipse
+		eclipseFormatFile	'spotless.eclipseformat.xml'	// XML file dumped out by the Eclipse formatter
+		// Eclipse formatter puts excess whitespace after lambda blocks
+		//    funcThatTakesLambdas(x -> {} , y -> {} )	// what Eclipse does
+		//    funcThatTakesLambdas(x -> {}, y -> {})	// what I wish Eclipse did
+		custom 'Lambda fix', { it.replace('} )', '})').replace('} ,', '},') }
+	}
+	format 'misc', {
+		target '**/.gitignore', '**/*.gradle', '**/*.md', '**/*.sh'
+		indentWithTabs()
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
+	freshmark {}
+}
